@@ -914,9 +914,93 @@ async def get_vulnerabilities():
                 "example_payload": "Directory enumeration or code review",
                 "impact": "Access to admin functionality",
                 "cwe": "CWE-200"
+            },
+            {
+                "id": "deser-pickle",
+                "name": "Insecure Deserialization - Pickle",
+                "category": "Insecure Deserialization",
+                "severity": "Critical",
+                "endpoint": "/api/deserialize",
+                "method": "POST",
+                "description": "Pickle deserialization allows arbitrary code execution",
+                "example_payload": "Base64 encoded pickle payload with __reduce__",
+                "impact": "Remote code execution, server compromise",
+                "cwe": "CWE-502"
+            },
+            {
+                "id": "deser-yaml",
+                "name": "Insecure Deserialization - YAML",
+                "category": "Insecure Deserialization",
+                "severity": "Critical",
+                "endpoint": "/api/cache/restore",
+                "method": "POST",
+                "description": "YAML.load with unsafe Loader allows code execution",
+                "example_payload": "!!python/object/apply:os.system ['id']",
+                "impact": "Remote code execution",
+                "cwe": "CWE-502"
+            },
+            {
+                "id": "deser-session",
+                "name": "Insecure Deserialization - Session",
+                "category": "Insecure Deserialization",
+                "severity": "Critical",
+                "endpoint": "/api/session/load?data=",
+                "method": "GET",
+                "description": "Session data deserialized from URL parameter via pickle",
+                "example_payload": "Base64 URL-safe encoded malicious pickle",
+                "impact": "Remote code execution via GET request",
+                "cwe": "CWE-502"
+            },
+            {
+                "id": "jwt-none-alg",
+                "name": "JWT Algorithm Confusion - None",
+                "category": "JWT Vulnerabilities",
+                "severity": "Critical",
+                "endpoint": "/api/jwt/forge-admin",
+                "method": "POST",
+                "description": "JWT verification accepts 'none' algorithm, allowing unsigned tokens",
+                "example_payload": "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJyb2xlIjoiYWRtaW4ifQ.",
+                "impact": "Authentication bypass, privilege escalation",
+                "cwe": "CWE-327"
+            },
+            {
+                "id": "jwt-weak-secret",
+                "name": "JWT Weak Secret",
+                "category": "JWT Vulnerabilities",
+                "severity": "High",
+                "endpoint": "/api/jwt/verify",
+                "method": "GET",
+                "description": "JWT signed with weak, predictable secret that can be brute-forced",
+                "example_payload": "Use jwt-cracker or hashcat with common passwords",
+                "impact": "Token forgery, authentication bypass",
+                "cwe": "CWE-521"
+            },
+            {
+                "id": "jwt-decode",
+                "name": "JWT Insecure Decode",
+                "category": "JWT Vulnerabilities",
+                "severity": "High",
+                "endpoint": "/api/jwt/decode",
+                "method": "POST",
+                "description": "JWT decoded using algorithm from token header instead of server config",
+                "example_payload": "Modify alg header to 'none' or switch HS256/RS256",
+                "impact": "Signature bypass, token manipulation",
+                "cwe": "CWE-347"
+            },
+            {
+                "id": "jwt-create",
+                "name": "JWT Arbitrary Creation",
+                "category": "JWT Vulnerabilities",
+                "severity": "Medium",
+                "endpoint": "/api/jwt/create",
+                "method": "POST",
+                "description": "Allows creating JWTs with any payload and algorithm including 'none'",
+                "example_payload": '{"payload": {"role": "admin"}, "algorithm": "none"}',
+                "impact": "Create forged tokens for privilege escalation",
+                "cwe": "CWE-345"
             }
         ],
-        "total_count": 16,
+        "total_count": 24,
         "categories": {
             "Injection": 4,
             "Server-Side Request Forgery": 2,
@@ -924,7 +1008,9 @@ async def get_vulnerabilities():
             "Broken Access Control": 3,
             "Cross-Site Scripting": 2,
             "Business Logic": 2,
-            "Security Misconfiguration": 1
+            "Security Misconfiguration": 1,
+            "Insecure Deserialization": 3,
+            "JWT Vulnerabilities": 4
         }
     }
 
