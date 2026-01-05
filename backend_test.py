@@ -642,6 +642,263 @@ class VulnShopTester:
             self.log_result("error", "XXE - Config Import", False, f"Error: {str(e)}")
             return False
 
+    def test_deserialization_pickle(self):
+        """Test Pickle deserialization vulnerability"""
+        try:
+            import base64
+            import pickle
+            
+            # Create a simple test object for pickle
+            test_data = {"test": "data", "number": 42}
+            pickled_data = pickle.dumps(test_data)
+            encoded_data = base64.b64encode(pickled_data).decode()
+            
+            payload = {
+                "data": encoded_data,
+                "format": "pickle"
+            }
+            
+            response = self.session.post(f"{self.api_url}/deserialize", json=payload)
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                if data.get("success") and data.get("format") == "pickle":
+                    details = f"Pickle deserialization successful - Result: {data.get('result', 'N/A')}"
+                    vulnerability = True
+                else:
+                    details = f"Pickle deserialization failed: {data.get('error', 'Unknown error')}"
+                    vulnerability = False
+            else:
+                details = f"Status: {response.status_code}"
+                vulnerability = False
+            
+            self.log_result("vuln", "Deserialization - Pickle", success, details, vulnerability)
+            return success
+        except Exception as e:
+            self.log_result("error", "Deserialization - Pickle", False, f"Error: {str(e)}")
+            return False
+
+    def test_deserialization_yaml(self):
+        """Test YAML deserialization vulnerability"""
+        try:
+            # Simple YAML payload (not malicious for testing)
+            yaml_payload = "test_key: test_value\nnumber: 123"
+            
+            response = self.session.post(
+                f"{self.api_url}/cache/restore", 
+                data=yaml_payload,
+                headers={"Content-Type": "text/plain"}
+            )
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                if data.get("success") and data.get("cache_restored"):
+                    details = f"YAML deserialization successful - Entries: {data.get('entries', 0)}"
+                    vulnerability = True
+                else:
+                    details = f"YAML deserialization failed: {data.get('error', 'Unknown error')}"
+                    vulnerability = False
+            else:
+                details = f"Status: {response.status_code}"
+                vulnerability = False
+            
+            self.log_result("vuln", "Deserialization - YAML", success, details, vulnerability)
+            return success
+        except Exception as e:
+            self.log_result("error", "Deserialization - YAML", False, f"Error: {str(e)}")
+            return False
+
+    def test_deserialization_session(self):
+        """Test Session pickle deserialization vulnerability"""
+        try:
+            import base64
+            import pickle
+            
+            # Create a simple session object
+            session_data = {"user_id": "123", "username": "test", "role": "user"}
+            pickled_session = pickle.dumps(session_data)
+            encoded_session = base64.urlsafe_b64encode(pickled_session).decode()
+            
+            response = self.session.get(f"{self.api_url}/session/load?data={encoded_session}")
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                if data.get("success"):
+                    details = f"Session deserialization successful - Keys: {data.get('keys', [])}"
+                    vulnerability = True
+                else:
+                    details = f"Session deserialization failed: {data.get('error', 'Unknown error')}"
+                    vulnerability = False
+            else:
+                details = f"Status: {response.status_code}"
+                vulnerability = False
+            
+            self.log_result("vuln", "Deserialization - Session", success, details, vulnerability)
+            return success
+        except Exception as e:
+            self.log_result("error", "Deserialization - Session", False, f"Error: {str(e)}")
+            return False
+
+    def test_jwt_create_none_algorithm(self):
+        """Test JWT creation with 'none' algorithm"""
+        try:
+            payload = {
+                "payload": {"role": "admin", "user_id": "1", "username": "test"},
+                "algorithm": "none"
+            }
+            
+            response = self.session.post(f"{self.api_url}/jwt/create", json=payload)
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                if data.get("success") and data.get("algorithm") == "none":
+                    token = data.get("token", "")
+                    details = f"JWT 'none' algorithm creation successful - Token: {token[:50]}..."
+                    vulnerability = True
+                    # Store token for forge-admin test
+                    self.none_algorithm_token = token
+                else:
+                    details = f"JWT 'none' algorithm creation failed: {data.get('error', 'Unknown error')}"
+                    vulnerability = False
+            else:
+                details = f"Status: {response.status_code}"
+                vulnerability = False
+            
+            self.log_result("vuln", "JWT None Algorithm Creation", success, details, vulnerability)
+            return success
+        except Exception as e:
+            self.log_result("error", "JWT None Algorithm Creation", False, f"Error: {str(e)}")
+            return False
+
+    def test_jwt_forge_admin(self):
+        """Test JWT forge admin with 'none' algorithm token"""
+        try:
+            # Use the token from previous test or create a manual one
+            if hasattr(self, 'none_algorithm_token'):
+                token = self.none_algorithm_token
+            else:
+                # Manual 'none' algorithm token: {"alg": "none", "typ": "JWT"}.{"role": "admin"}.
+                token = "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJyb2xlIjoiYWRtaW4ifQ."
+            
+            response = self.session.post(f"{self.api_url}/jwt/forge-admin", json=token)
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                if data.get("success") and "flag" in data:
+                    flag = data.get("flag", "")
+                    details = f"JWT forge admin successful - Flag: {flag}"
+                    vulnerability = True
+                else:
+                    details = f"JWT forge admin failed: {data.get('message', 'Access denied')}"
+                    vulnerability = False
+            else:
+                details = f"Status: {response.status_code}"
+                vulnerability = False
+            
+            self.log_result("vuln", "JWT Forge Admin", success, details, vulnerability)
+            return success
+        except Exception as e:
+            self.log_result("error", "JWT Forge Admin", False, f"Error: {str(e)}")
+            return False
+
+    def test_jwt_decode(self):
+        """Test JWT decode with algorithm confusion"""
+        try:
+            # Create a test token first
+            test_payload = {"user_id": "123", "role": "user"}
+            create_response = self.session.post(f"{self.api_url}/jwt/create", json={
+                "payload": test_payload,
+                "algorithm": "HS256"
+            })
+            
+            if create_response.status_code == 200:
+                token = create_response.json().get("token", "")
+                
+                # Now test decode
+                decode_payload = {"token": token}
+                response = self.session.post(f"{self.api_url}/jwt/decode", json=decode_payload)
+                success = response.status_code == 200
+                
+                if success:
+                    data = response.json()
+                    if data.get("success") and "decoded" in data:
+                        decoded = data.get("decoded", {})
+                        details = f"JWT decode successful - Role: {decoded.get('role', 'N/A')}"
+                        vulnerability = True
+                    else:
+                        details = f"JWT decode failed: {data.get('error', 'Unknown error')}"
+                        vulnerability = False
+                else:
+                    details = f"Status: {response.status_code}"
+                    vulnerability = False
+            else:
+                details = "Failed to create test token for decode test"
+                success = False
+                vulnerability = False
+            
+            self.log_result("vuln", "JWT Decode", success, details, vulnerability)
+            return success
+        except Exception as e:
+            self.log_result("error", "JWT Decode", False, f"Error: {str(e)}")
+            return False
+
+    def test_jwt_verify_weak_secret(self):
+        """Test JWT verification with weak secret"""
+        try:
+            # Test with a token (assuming weak secret)
+            test_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiMTIzIiwicm9sZSI6InVzZXIifQ.invalid_signature"
+            
+            response = self.session.get(f"{self.api_url}/jwt/verify?token={test_token}&algorithm=HS256")
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                if "hint" in data:
+                    details = f"JWT verify endpoint accessible - Hint: {data.get('hint', 'N/A')[:50]}..."
+                    vulnerability = True
+                else:
+                    details = f"JWT verify response: {data.get('error', 'Unknown')}"
+                    vulnerability = False
+            else:
+                details = f"Status: {response.status_code}"
+                vulnerability = False
+            
+            self.log_result("vuln", "JWT Verify Weak Secret", success, details, vulnerability)
+            return success
+        except Exception as e:
+            self.log_result("error", "JWT Verify Weak Secret", False, f"Error: {str(e)}")
+            return False
+
+    def test_jwt_secret_hint(self):
+        """Test JWT secret hint endpoint"""
+        try:
+            response = self.session.get(f"{self.api_url}/jwt/secret-hint")
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                hints = data.get("hints", [])
+                if hints and len(hints) > 0:
+                    details = f"JWT secret hints available - {len(hints)} hints provided"
+                    vulnerability = True
+                else:
+                    details = "JWT secret hint endpoint accessible but no hints"
+                    vulnerability = False
+            else:
+                details = f"Status: {response.status_code}"
+                vulnerability = False
+            
+            self.log_result("vuln", "JWT Secret Hint", success, details, vulnerability)
+            return success
+        except Exception as e:
+            self.log_result("error", "JWT Secret Hint", False, f"Error: {str(e)}")
+            return False
+
     def run_all_tests(self):
         """Run all tests"""
         print("🚀 Starting VulnShop Backend Testing Suite")
