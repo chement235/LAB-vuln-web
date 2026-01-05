@@ -20,6 +20,8 @@ Membuat website e-commerce vulnerable untuk laboratorium cyber security dengan k
 | SQL Injection | ✅ Implemented |
 | NoSQL Injection | ✅ Implemented |
 | Command Injection | ✅ Implemented |
+| SSRF | ✅ Implemented (Dec 2025) |
+| XXE | ✅ Implemented (Dec 2025) |
 | IDOR | ✅ Implemented |
 | Privilege Escalation | ✅ Implemented |
 | Stored XSS | ✅ Implemented |
@@ -27,61 +29,55 @@ Membuat website e-commerce vulnerable untuk laboratorium cyber security dengan k
 | Negative Price/Quantity | ✅ Implemented |
 | Coupon Reuse | ✅ Implemented |
 | Hidden Admin Dashboard | ✅ Implemented |
+| Documentation Page | ✅ Implemented (Dec 2025) |
 
-## What's Been Implemented (December 2025)
+## What's Been Implemented
 
-### Vulnerabilities
-1. **SQL Injection**
-   - `/api/products/search?q=` - Search query injection
-   - `/api/auth/legacy-login` - Login bypass
+### Phase 1 (December 2025)
+- Full e-commerce functionality
+- 12 initial vulnerabilities
+- Cyber-themed UI
 
-2. **NoSQL Injection**
-   - `/api/users/lookup?filter={}` - JSON filter injection
+### Phase 2 (December 2025)
+**New Vulnerabilities:**
+1. **SSRF - Webhook Test** (`/api/webhook/test`) - POST request to fetch any URL
+2. **SSRF - Image Fetch** (`/api/fetch-image?url=`) - GET request for image URLs
+3. **XXE - Product Import** (`/api/import/products`) - XML parsing with external entities
+4. **XXE - Config Import** (`/api/config/import`) - Raw XML body parsing
 
-3. **Command Injection**
-   - `/api/export/orders` - Filename/format injection
+**Documentation System:**
+- `/vulnerabilities` - Full documentation page
+- `/api/vulnerabilities` - API endpoint with all vuln details
+- 16 total vulnerabilities documented
+- Cheat sheets for SQLi, NoSQLi, SSRF, XXE, XSS, Business Logic
+- Category filtering (7 categories)
+- Expandable exploitation details
+- CWE references with external links
 
-4. **IDOR**
-   - `/api/profile/{user_id}` - Access any user profile
-   - `/api/orders/{order_id}` - Access any order
-
-5. **Privilege Escalation**
-   - `/api/profile/update` - Change role to admin
-
-6. **XSS**
-   - Stored XSS in product reviews (dangerouslySetInnerHTML)
-   - Reflected XSS at `/api/search/render?q=`
-
-7. **Business Logic**
-   - Negative quantities allowed in checkout
-   - Coupon codes can be reused
-   - Rounding errors in calculations
-
-8. **Hidden Admin Panel**
-   - Challenge: `/api/c0ntr0l-p4n3l/`
-   - Contains flag: `FLAG{y0u_f0und_th3_4dm1n_p4n3l}`
-
-### E-commerce Features
-- Product listing with categories
-- Product detail pages
-- User registration/login
-- Shopping cart
-- Checkout with coupons
-- Order history
-- User profiles
+### Total Vulnerabilities: 16
+| Category | Count |
+|----------|-------|
+| Injection | 4 |
+| Server-Side Request Forgery | 2 |
+| XML External Entity | 2 |
+| Broken Access Control | 3 |
+| Cross-Site Scripting | 2 |
+| Business Logic | 2 |
+| Security Misconfiguration | 1 |
 
 ## Prioritized Backlog
 
 ### P0 - Done
-- All core vulnerabilities
+- All core vulnerabilities (16)
 - Basic e-commerce flow
 - Cyber-themed UI
+- Documentation page
+- SSRF & XXE vulnerabilities
 
 ### P1 - Future Enhancements
 - Vulnerability difficulty levels (Easy/Medium/Hard)
-- Hints system for each vulnerability
 - Progress tracking/leaderboard
-- More injection points
+- Hints system toggle
 
 ### P2 - Nice to Have
 - Docker containerization
@@ -90,7 +86,7 @@ Membuat website e-commerce vulnerable untuk laboratorium cyber security dengan k
 - Certificate generation
 
 ## Next Tasks
-1. Add documentation for each vulnerability
-2. Implement difficulty toggle
-3. Add more advanced vulnerabilities (SSRF, XXE)
-4. Create teacher/admin dashboard for tracking student progress
+1. Add difficulty toggle for each vulnerability
+2. Create progress tracking system
+3. Implement leaderboard for CTF-style challenges
+4. Add more advanced vulnerabilities (Deserialization, JWT attacks)
