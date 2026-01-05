@@ -142,6 +142,17 @@ class SSRFRequest(BaseModel):
 class XMLImportRequest(BaseModel):
     xml_data: str  # VULNERABLE: XXE
 
+class DeserializeRequest(BaseModel):
+    data: str  # VULNERABLE: Pickle deserialization
+    format: str = "pickle"  # pickle, yaml, json
+
+class JWTDecodeRequest(BaseModel):
+    token: str
+
+class JWTCreateRequest(BaseModel):
+    payload: dict
+    algorithm: str = "HS256"  # VULNERABLE: Algorithm confusion
+
 # ============== AUTH HELPERS ==============
 
 def create_token(user_id: str, username: str, role: str = "user"):
