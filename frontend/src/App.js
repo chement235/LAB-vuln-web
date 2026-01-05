@@ -169,6 +169,11 @@ const Navbar = () => {
               PRODUCTS
             </Link>
             
+            <Link to="/vulnerabilities" className="text-gray-300 hover:text-red-400 transition-colors font-mono text-sm tracking-wide flex items-center" data-testid="nav-vulns">
+              <Bug className="w-4 h-4 mr-1" />
+              VULNS
+            </Link>
+            
             <Link to="/cart" className="relative p-2 text-gray-300 hover:text-cyan-400 transition-colors" data-testid="nav-cart">
               <ShoppingCart className="w-5 h-5" />
               {cart.length > 0 && (
