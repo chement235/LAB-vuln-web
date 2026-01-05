@@ -1,5 +1,5 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Query, Request, Depends
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, APIRouter, HTTPException, Query, Request, Depends, Body
+from fastapi.responses import HTMLResponse, PlainTextResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -16,6 +16,9 @@ import bcrypt
 from datetime import datetime, timezone, timedelta
 import json
 import re
+import requests
+import xml.etree.ElementTree as ET
+import urllib.parse
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -127,6 +130,12 @@ class ProfileUpdate(BaseModel):
 class ExportRequest(BaseModel):
     format: str  # VULNERABLE: Command injection
     filename: str
+
+class SSRFRequest(BaseModel):
+    url: str  # VULNERABLE: SSRF
+
+class XMLImportRequest(BaseModel):
+    xml_data: str  # VULNERABLE: XXE
 
 # ============== AUTH HELPERS ==============
 
