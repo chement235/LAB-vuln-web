@@ -4,7 +4,7 @@ import axios from "axios";
 import { 
   Shield, AlertTriangle, Bug, Code, Database, Server, 
   FileCode, Lock, DollarSign, Eye, ChevronDown, ChevronUp,
-  Copy, Check, ExternalLink, Terminal, Zap
+  Copy, Check, ExternalLink, Terminal, Zap, Key, Package
 } from "lucide-react";
 import { Button } from "./components/ui/button";
 import { Badge } from "./components/ui/badge";
@@ -34,7 +34,9 @@ const categoryIcons = {
   "Broken Access Control": <Lock className="w-5 h-5" />,
   "Cross-Site Scripting": <Code className="w-5 h-5" />,
   "Business Logic": <DollarSign className="w-5 h-5" />,
-  "Security Misconfiguration": <Eye className="w-5 h-5" />
+  "Security Misconfiguration": <Eye className="w-5 h-5" />,
+  "Insecure Deserialization": <Package className="w-5 h-5" />,
+  "JWT Vulnerabilities": <Key className="w-5 h-5" />
 };
 
 const CodeBlock = ({ code, language = "bash" }) => {
