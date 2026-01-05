@@ -470,10 +470,10 @@ class VulnShopTester:
                 total_count = data.get("total_count", 0)
                 categories = data.get("categories", {})
                 
-                if total_count == 16 and len(vulns) == 16:
+                if total_count == 24 and len(vulns) == 24:
                     details = f"Documentation complete - {total_count} vulnerabilities, {len(categories)} categories"
                 else:
-                    details = f"Documentation incomplete - Expected 16, got {len(vulns)} vulnerabilities"
+                    details = f"Documentation incomplete - Expected 24, got {len(vulns)} vulnerabilities"
                     success = False
             else:
                 details = f"Status: {response.status_code}"
