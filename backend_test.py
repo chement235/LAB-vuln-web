@@ -947,6 +947,18 @@ class VulnShopTester:
         self.test_xxe_product_import()
         self.test_xxe_config_import()
         
+        # NEW: Test Deserialization and JWT vulnerabilities (iteration 3)
+        print("\n🆕 Testing New Vulnerabilities (Iteration 3):")
+        print("-" * 40)
+        self.test_deserialization_pickle()
+        self.test_deserialization_yaml()
+        self.test_deserialization_session()
+        self.test_jwt_create_none_algorithm()
+        self.test_jwt_forge_admin()
+        self.test_jwt_decode()
+        self.test_jwt_verify_weak_secret()
+        self.test_jwt_secret_hint()
+        
         # Summary
         print("\n" + "=" * 60)
         print("📊 TEST SUMMARY")
