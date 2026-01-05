@@ -2,7 +2,7 @@ import { useEffect, useState, createContext, useContext } from "react";
 import { BrowserRouter, Routes, Route, Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { Toaster, toast } from "sonner";
-import { ShoppingCart, User, Search, Menu, X, Package, Shield, Terminal, Trash2, Plus, Minus, LogOut } from "lucide-react";
+import { ShoppingCart, User, Search, Menu, X, Package, Shield, Terminal, Trash2, Plus, Minus, LogOut, Bug } from "lucide-react";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import { Badge } from "./components/ui/badge";
@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./components/ui/dropdown-menu";
+import VulnerabilitiesPage from "./VulnerabilitiesPage";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
