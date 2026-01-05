@@ -534,6 +534,188 @@ async def import_config(xml_content: str = Body(..., media_type="application/xml
     except Exception as e:
         return {"error": str(e)}
 
+# ============== DESERIALIZATION VULNERABILITIES ==============
+
+@api_router.post("/deserialize")
+async def deserialize_data(request: DeserializeRequest):
+    """VULNERABLE: Insecure Deserialization
+    Accepts serialized data and deserializes it unsafely
+    """
+    try:
+        decoded_data = base64.b64decode(request.data)
+        
+        if request.format.lower() == "pickle":
+            # VULNERABLE: Pickle deserialization can execute arbitrary code
+            result = pickle.loads(decoded_data)
+            return {
+                "success": True,
+                "format": "pickle",
+                "result": str(result),
+                "type": str(type(result).__name__)
+            }
+        
+        elif request.format.lower() == "yaml":
+            # VULNERABLE: YAML load can execute arbitrary Python
+            result = yaml.load(decoded_data.decode(), Loader=yaml.Loader)
+            return {
+                "success": True,
+                "format": "yaml",
+                "result": result,
+                "type": str(type(result).__name__)
+            }
+        
+        elif request.format.lower() == "json":
+            result = json.loads(decoded_data.decode())
+            return {
+                "success": True,
+                "format": "json",
+                "result": result
+            }
+        
+        else:
+            return {"error": f"Unknown format: {request.format}"}
+            
+    except Exception as e:
+        return {"error": str(e)}
+
+@api_router.get("/session/load")
+async def load_session(data: str = Query(...)):
+    """VULNERABLE: Pickle deserialization from query parameter
+    Session data is loaded via pickle
+    """
+    try:
+        # VULNERABLE: Direct pickle load from user input
+        decoded = base64.urlsafe_b64decode(data)
+        session = pickle.loads(decoded)
+        return {
+            "success": True,
+            "session": str(session),
+            "keys": list(session.keys()) if isinstance(session, dict) else None
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+@api_router.post("/cache/restore")
+async def restore_cache(cache_data: str = Body(...)):
+    """VULNERABLE: YAML deserialization
+    Cache data restored from YAML format
+    """
+    try:
+        # VULNERABLE: yaml.load with Loader allows code execution
+        cache = yaml.load(cache_data, Loader=yaml.Loader)
+        return {
+            "success": True,
+            "cache_restored": True,
+            "entries": len(cache) if isinstance(cache, (dict, list)) else 1,
+            "data": cache
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+# ============== JWT VULNERABILITIES ==============
+
+@api_router.post("/jwt/decode")
+async def jwt_decode_endpoint(request: JWTDecodeRequest):
+    """VULNERABLE: JWT decode with algorithm confusion
+    Accepts algorithm from token header
+    """
+    try:
+        # VULNERABLE: Uses algorithm from token header
+        result = decode_token_vulnerable(request.token)
+        return {
+            "success": True,
+            "decoded": result,
+            "header": jwt.get_unverified_header(request.token)
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+@api_router.post("/jwt/create")
+async def jwt_create_endpoint(request: JWTCreateRequest):
+    """VULNERABLE: JWT creation with user-specified algorithm
+    Can create tokens with 'none' algorithm
+    """
+    try:
+        if request.algorithm.lower() == "none":
+            # VULNERABLE: Create unsigned token
+            header = {"alg": "none", "typ": "JWT"}
+            header_b64 = base64.urlsafe_b64encode(json.dumps(header).encode()).rstrip(b'=').decode()
+            payload_b64 = base64.urlsafe_b64encode(json.dumps(request.payload).encode()).rstrip(b'=').decode()
+            token = f"{header_b64}.{payload_b64}."
+        else:
+            token = jwt.encode(request.payload, JWT_SECRET, algorithm=request.algorithm)
+        
+        return {
+            "success": True,
+            "token": token,
+            "algorithm": request.algorithm
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+@api_router.get("/jwt/verify")
+async def jwt_verify_endpoint(token: str = Query(...), algorithm: str = Query("HS256")):
+    """VULNERABLE: JWT verification with weak secret
+    Secret is predictable and can be brute-forced
+    """
+    try:
+        # Try to verify with the weak secret
+        decoded = jwt.decode(token, JWT_SECRET, algorithms=[algorithm])
+        return {
+            "valid": True,
+            "decoded": decoded,
+            "hint": "The secret key is weak and predictable..."
+        }
+    except jwt.InvalidSignatureError:
+        return {"valid": False, "error": "Invalid signature", "hint": "Try common passwords as the secret"}
+    except jwt.ExpiredSignatureError:
+        return {"valid": False, "error": "Token expired"}
+    except Exception as e:
+        return {"valid": False, "error": str(e)}
+
+@api_router.get("/jwt/secret-hint")
+async def jwt_secret_hint():
+    """Provides hints about the JWT secret for CTF"""
+    return {
+        "hints": [
+            "The secret is a common phrase",
+            "It contains the word 'vulnerable'",
+            "It's less than 30 characters",
+            f"First character: '{JWT_SECRET[0]}'",
+            f"Last character: '{JWT_SECRET[-1]}'",
+            f"Length: {len(JWT_SECRET)} characters"
+        ],
+        "challenge": "Can you crack the JWT secret?"
+    }
+
+@api_router.post("/jwt/forge-admin")
+async def jwt_forge_admin(token: str = Body(...)):
+    """VULNERABLE: Verifies admin access with flawed JWT validation
+    Accepts 'none' algorithm tokens
+    """
+    try:
+        # VULNERABLE: Uses vulnerable decoder that accepts 'none' algorithm
+        decoded = decode_token_vulnerable(token)
+        
+        if isinstance(decoded, dict) and decoded.get("error"):
+            return {"success": False, "error": decoded["error"]}
+        
+        if decoded.get("role") == "admin":
+            return {
+                "success": True,
+                "message": "🎉 Admin access granted!",
+                "flag": "FLAG{jwt_n0n3_4lg0r1thm_byp4ss}",
+                "user": decoded
+            }
+        else:
+            return {
+                "success": False,
+                "message": "Access denied. Admin role required.",
+                "your_role": decoded.get("role", "unknown")
+            }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
 # ============== DOCUMENTATION ENDPOINT ==============
 
 @api_router.get("/vulnerabilities")
