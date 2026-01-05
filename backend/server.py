@@ -402,6 +402,304 @@ async def validate_coupon(code: str):
         return {"valid": True, "coupon": coupon}
     return {"valid": False}
 
+# ============== SSRF VULNERABILITY ==============
+
+@api_router.post("/webhook/test")
+async def test_webhook(request: SSRFRequest):
+    """VULNERABLE: Server-Side Request Forgery (SSRF)
+    Allows attacker to make requests from the server to internal services
+    """
+    try:
+        # VULNERABLE: No URL validation - can access internal services
+        response = requests.get(request.url, timeout=5)
+        return {
+            "status_code": response.status_code,
+            "content_length": len(response.text),
+            "content": response.text[:2000],  # Limit response size
+            "headers": dict(response.headers)
+        }
+    except requests.exceptions.RequestException as e:
+        return {"error": str(e)}
+
+@api_router.get("/fetch-image")
+async def fetch_image(url: str = Query(...)):
+    """VULNERABLE: SSRF via image fetching
+    Can be used to scan internal network
+    """
+    try:
+        # VULNERABLE: No URL validation
+        response = requests.get(url, timeout=5)
+        return {
+            "url": url,
+            "status": response.status_code,
+            "content_type": response.headers.get("Content-Type", "unknown"),
+            "size": len(response.content)
+        }
+    except Exception as e:
+        return {"error": str(e), "url": url}
+
+# ============== XXE VULNERABILITY ==============
+
+@api_router.post("/import/products")
+async def import_products_xml(request: XMLImportRequest):
+    """VULNERABLE: XML External Entity (XXE) Injection
+    Allows reading local files and SSRF via XML entities
+    """
+    try:
+        # VULNERABLE: Using unsafe XML parser that processes external entities
+        # This is intentionally vulnerable - in production, use defusedxml
+        parser = ET.XMLParser()
+        root = ET.fromstring(request.xml_data, parser=parser)
+        
+        products = []
+        for product in root.findall('.//product'):
+            prod_data = {
+                "name": product.findtext('name', ''),
+                "price": product.findtext('price', '0'),
+                "description": product.findtext('description', ''),
+                "category": product.findtext('category', '')
+            }
+            products.append(prod_data)
+        
+        return {
+            "success": True,
+            "parsed_products": products,
+            "raw_text": ET.tostring(root, encoding='unicode')
+        }
+    except ET.ParseError as e:
+        return {"error": f"XML Parse Error: {str(e)}"}
+    except Exception as e:
+        return {"error": str(e)}
+
+@api_router.post("/config/import")
+async def import_config(xml_content: str = Body(..., media_type="application/xml")):
+    """VULNERABLE: XXE via config import
+    Another XXE vector via raw XML body
+    """
+    try:
+        # VULNERABLE: Unsafe XML parsing
+        root = ET.fromstring(xml_content)
+        
+        config = {}
+        for elem in root:
+            config[elem.tag] = elem.text
+        
+        return {"success": True, "config": config}
+    except Exception as e:
+        return {"error": str(e)}
+
+# ============== DOCUMENTATION ENDPOINT ==============
+
+@api_router.get("/vulnerabilities")
+async def get_vulnerabilities():
+    """Get list of all vulnerabilities in this lab"""
+    return {
+        "vulnerabilities": [
+            {
+                "id": "sqli-search",
+                "name": "SQL Injection - Product Search",
+                "category": "Injection",
+                "severity": "Critical",
+                "endpoint": "/api/products/search?q=",
+                "method": "GET",
+                "description": "Search parameter is directly concatenated into SQL query without sanitization",
+                "example_payload": "' OR '1'='1' --",
+                "impact": "Data exfiltration, authentication bypass, database manipulation",
+                "cwe": "CWE-89"
+            },
+            {
+                "id": "sqli-login",
+                "name": "SQL Injection - Legacy Login",
+                "category": "Injection",
+                "severity": "Critical",
+                "endpoint": "/api/auth/legacy-login",
+                "method": "POST",
+                "description": "Username and password are directly used in SQL query",
+                "example_payload": "admin'--",
+                "impact": "Authentication bypass, access to admin account",
+                "cwe": "CWE-89"
+            },
+            {
+                "id": "nosqli",
+                "name": "NoSQL Injection - User Lookup",
+                "category": "Injection",
+                "severity": "High",
+                "endpoint": "/api/users/lookup?filter=",
+                "method": "GET",
+                "description": "Filter parameter is parsed as JSON and used directly in MongoDB query",
+                "example_payload": '{"$ne": null}',
+                "impact": "Data exfiltration, query manipulation",
+                "cwe": "CWE-943"
+            },
+            {
+                "id": "cmdi",
+                "name": "Command Injection - Export",
+                "category": "Injection",
+                "severity": "Critical",
+                "endpoint": "/api/export/orders",
+                "method": "POST",
+                "description": "Filename parameter is used in shell command without sanitization",
+                "example_payload": "test; cat /etc/passwd",
+                "impact": "Remote code execution, server compromise",
+                "cwe": "CWE-78"
+            },
+            {
+                "id": "ssrf-webhook",
+                "name": "SSRF - Webhook Test",
+                "category": "Server-Side Request Forgery",
+                "severity": "High",
+                "endpoint": "/api/webhook/test",
+                "method": "POST",
+                "description": "URL parameter is fetched by server without validation",
+                "example_payload": "http://localhost:8001/api/c0ntr0l-p4n3l/system",
+                "impact": "Internal network scanning, access to internal services, cloud metadata exposure",
+                "cwe": "CWE-918"
+            },
+            {
+                "id": "ssrf-image",
+                "name": "SSRF - Image Fetch",
+                "category": "Server-Side Request Forgery",
+                "severity": "High",
+                "endpoint": "/api/fetch-image?url=",
+                "method": "GET",
+                "description": "Image URL is fetched without validation",
+                "example_payload": "http://169.254.169.254/latest/meta-data/",
+                "impact": "Cloud metadata access, internal service discovery",
+                "cwe": "CWE-918"
+            },
+            {
+                "id": "xxe-import",
+                "name": "XXE - Product Import",
+                "category": "XML External Entity",
+                "severity": "High",
+                "endpoint": "/api/import/products",
+                "method": "POST",
+                "description": "XML parser processes external entities without restriction",
+                "example_payload": '<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><products><product><name>&xxe;</name></product></products>',
+                "impact": "Local file disclosure, SSRF, denial of service",
+                "cwe": "CWE-611"
+            },
+            {
+                "id": "xxe-config",
+                "name": "XXE - Config Import",
+                "category": "XML External Entity",
+                "severity": "High",
+                "endpoint": "/api/config/import",
+                "method": "POST",
+                "description": "Raw XML body parsed unsafely",
+                "example_payload": '<?xml version="1.0"?><!DOCTYPE config [<!ENTITY xxe SYSTEM "file:///etc/hostname">]><config><setting>&xxe;</setting></config>',
+                "impact": "Local file disclosure, server information leakage",
+                "cwe": "CWE-611"
+            },
+            {
+                "id": "idor-profile",
+                "name": "IDOR - Profile Access",
+                "category": "Broken Access Control",
+                "severity": "Medium",
+                "endpoint": "/api/profile/{user_id}",
+                "method": "GET",
+                "description": "No authorization check - any user can access any profile by ID",
+                "example_payload": "Try different user IDs",
+                "impact": "Unauthorized access to user data",
+                "cwe": "CWE-639"
+            },
+            {
+                "id": "idor-orders",
+                "name": "IDOR - Order Access",
+                "category": "Broken Access Control",
+                "severity": "Medium",
+                "endpoint": "/api/orders/{order_id}",
+                "method": "GET",
+                "description": "No authorization check on order retrieval",
+                "example_payload": "Enumerate order UUIDs",
+                "impact": "Access to other users' order information",
+                "cwe": "CWE-639"
+            },
+            {
+                "id": "privesc",
+                "name": "Privilege Escalation - Role Update",
+                "category": "Broken Access Control",
+                "severity": "Critical",
+                "endpoint": "/api/profile/update",
+                "method": "PUT",
+                "description": "User can update their own role field to gain admin privileges",
+                "example_payload": '{"role": "admin"}',
+                "impact": "Elevation to admin privileges",
+                "cwe": "CWE-269"
+            },
+            {
+                "id": "xss-stored",
+                "name": "Stored XSS - Reviews",
+                "category": "Cross-Site Scripting",
+                "severity": "High",
+                "endpoint": "/api/reviews",
+                "method": "POST",
+                "description": "Review comments are stored and rendered without sanitization",
+                "example_payload": "<script>alert('XSS')</script>",
+                "impact": "Session hijacking, phishing, malware distribution",
+                "cwe": "CWE-79"
+            },
+            {
+                "id": "xss-reflected",
+                "name": "Reflected XSS - Search Render",
+                "category": "Cross-Site Scripting",
+                "severity": "Medium",
+                "endpoint": "/api/search/render?q=",
+                "method": "GET",
+                "description": "Search query is reflected in HTML response without encoding",
+                "example_payload": "<script>alert(document.cookie)</script>",
+                "impact": "Session theft, credential harvesting",
+                "cwe": "CWE-79"
+            },
+            {
+                "id": "biz-logic-negative",
+                "name": "Business Logic - Negative Quantity",
+                "category": "Business Logic",
+                "severity": "High",
+                "endpoint": "/api/checkout",
+                "method": "POST",
+                "description": "No validation for negative quantities in cart items",
+                "example_payload": '{"quantity": -10}',
+                "impact": "Price manipulation, free products, credit to account",
+                "cwe": "CWE-20"
+            },
+            {
+                "id": "biz-logic-coupon",
+                "name": "Business Logic - Coupon Reuse",
+                "category": "Business Logic",
+                "severity": "Medium",
+                "endpoint": "/api/checkout",
+                "method": "POST",
+                "description": "Coupons are not marked as used after application",
+                "example_payload": "Use WELCOME10 multiple times",
+                "impact": "Unlimited discounts",
+                "cwe": "CWE-837"
+            },
+            {
+                "id": "hidden-admin",
+                "name": "Hidden Admin Panel",
+                "category": "Security Misconfiguration",
+                "severity": "Info",
+                "endpoint": "/api/c0ntr0l-p4n3l/",
+                "method": "GET",
+                "description": "Admin panel hidden at non-obvious endpoint",
+                "example_payload": "Directory enumeration or code review",
+                "impact": "Access to admin functionality",
+                "cwe": "CWE-200"
+            }
+        ],
+        "total_count": 16,
+        "categories": {
+            "Injection": 4,
+            "Server-Side Request Forgery": 2,
+            "XML External Entity": 2,
+            "Broken Access Control": 3,
+            "Cross-Site Scripting": 2,
+            "Business Logic": 2,
+            "Security Misconfiguration": 1
+        }
+    }
+
 # ============== NORMAL ENDPOINTS ==============
 
 @api_router.get("/")
