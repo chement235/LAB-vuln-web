@@ -681,6 +681,15 @@ class VulnShopTester:
         self.test_reflected_xss()
         self.test_hidden_admin_panel()
         
+        # NEW: Test SSRF and XXE vulnerabilities (iteration 2)
+        print("\n🆕 Testing New Vulnerabilities (Iteration 2):")
+        print("-" * 40)
+        self.test_vulnerabilities_documentation()
+        self.test_ssrf_webhook()
+        self.test_ssrf_image_fetch()
+        self.test_xxe_product_import()
+        self.test_xxe_config_import()
+        
         # Summary
         print("\n" + "=" * 60)
         print("📊 TEST SUMMARY")
