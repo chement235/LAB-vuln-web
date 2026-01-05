@@ -1,0 +1,138 @@
+{
+  "identity": {
+    "name": "E1",
+    "role": "Anti-AI Creative Designer",
+    "aesthetic": "Cyber-Industrial / Underground Black Market",
+    "principles": [
+      "Fusion over Imitation: Mix Cyberpunk aesthetics with Swiss Grid precision.",
+      "Emotion First: The site should feel 'illicit', 'exclusive', and 'high-tech'.",
+      "Content is King: Every product description reads like a classified intelligence report.",
+      "Negative Space: Use deep black voids to create tension.",
+      "Contrast: High-contrast neon against void black."
+    ]
+  },
+  "theme_strategy": {
+    "mode": "dark",
+    "style": "Cyber-Stealth",
+    "description": "A dark, immersive interface that mimics a high-end black market for hackers. Sharp edges, neon accents, and terminal-like typography."
+  },
+  "typography": {
+    "headings": {
+      "font_family": "Rajdhani, sans-serif",
+      "weight": "700",
+      "style": "Uppercase, tracking-wider",
+      "usage": "Page titles, Product names, Hero text"
+    },
+    "body": {
+      "font_family": "Space Grotesk, sans-serif",
+      "weight": "400",
+      "usage": "General content, descriptions"
+    },
+    "mono": {
+      "font_family": "JetBrains Mono, monospace",
+      "usage": "Prices, Specs, Code snippets, Data displays"
+    },
+    "google_fonts_import": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;600;700&family=Space+Grotesk:wght@300;400;600&display=swap"
+  },
+  "colors": {
+    "palette": {
+      "background": "#030304",
+      "foreground": "#EDEDED",
+      "card": "#0A0A0C",
+      "card_foreground": "#EDEDED",
+      "popover": "#0A0A0C",
+      "popover_foreground": "#EDEDED",
+      "primary": "#00F0FF",
+      "primary_foreground": "#000000",
+      "secondary": "#7000FF",
+      "secondary_foreground": "#FFFFFF",
+      "muted": "#1A1A1D",
+      "muted_foreground": "#888888",
+      "accent": "#1A1A1D",
+      "accent_foreground": "#00F0FF",
+      "destructive": "#FF2A6D",
+      "destructive_foreground": "#FFFFFF",
+      "border": "#2A2A2E",
+      "input": "#1A1A1D",
+      "ring": "#00F0FF"
+    },
+    "gradients": {
+      "hero": "linear-gradient(135deg, #00F0FF 0%, #7000FF 100%)",
+      "glow": "radial-gradient(circle, rgba(0, 240, 255, 0.15) 0%, rgba(0, 0, 0, 0) 70%)"
+    }
+  },
+  "layout": {
+    "grid_system": "Bento Grid (Mode A)",
+    "spacing": "Generous (2x standard)",
+    "container_padding": "p-6 md:p-12",
+    "border_radius": "rounded-none",
+    "border_style": "1px solid rgba(255, 255, 255, 0.1)"
+  },
+  "components": {
+    "buttons": {
+      "style": "Sharp edges, uppercase text, hover glow effect",
+      "classes": "rounded-none font-mono tracking-widest uppercase border border-primary/50 hover:bg-primary/10 hover:shadow-[0_0_15px_rgba(0,240,255,0.3)] transition-all duration-300"
+    },
+    "cards": {
+      "style": "Glassmorphism with technical markings",
+      "classes": "bg-card/50 backdrop-blur-md border border-white/10 rounded-none hover:border-primary/50 transition-colors duration-300"
+    },
+    "inputs": {
+      "style": "Terminal style, bottom border only or sharp box",
+      "classes": "bg-black/50 border-white/20 focus:border-primary rounded-none font-mono"
+    }
+  },
+  "visual_enhancers": {
+    "textures": "Subtle noise overlay (opacity 0.05)",
+    "decorations": [
+      "Corner markers (brackets) on cards",
+      "Scanlines overlay on hero images",
+      "Glitch effects on hover"
+    ],
+    "motion": {
+      "hover": "scale-[1.02] brightness-110",
+      "page_load": "fade-in-up duration-700"
+    }
+  },
+  "image_urls": {
+    "hero_background": "https://images.unsplash.com/photo-1613488329064-aafbeb1e4db1?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "texture_server": "https://images.unsplash.com/photo-1645477704075-cb3d14b349ee?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "products": [
+      {
+        "name": "Ghost Phone X1",
+        "url": "https://images.unsplash.com/photo-1643186042811-63a2b94c7f98?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "category": "Communication"
+      },
+      {
+        "name": "Neon Decor",
+        "url": "https://images.unsplash.com/photo-1573761449626-1b80629dafc3?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "category": "Lifestyle"
+      },
+      {
+        "name": "Encrypted Drive",
+        "url": "https://images.unsplash.com/photo-1754301735329-660c07c97b17?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "category": "Storage"
+      }
+    ],
+    "placeholders": {
+      "user": "https://images.unsplash.com/photo-1621931158493-49b48018bf64?crop=entropy&cs=srgb&fm=jpg&q=85"
+    }
+  },
+  "instructions_to_main_agent": [
+    "1. IMPLEMENT THEME FIRST: Update index.css with the provided color palette variables immediately.",
+    "2. FONT SETUP: Add the Google Fonts import to index.css or index.html.",
+    "3. COMPONENT OVERRIDES: When using Shadcn components, strip the 'rounded-md' classes and replace with 'rounded-none'. Add 'border-white/10' to cards.",
+    "4. LAYOUT: Use the 'Bento Grid' strategy for the product listing page. Do not just list rows of cards.",
+    "5. VULNERABILITIES: This is a lab. Ensure the UI looks professional so the vulnerabilities (SQLi, XSS) feel 'hidden' behind a slick interface.",
+    "6. ADMIN DASHBOARD: Design this to look like a 'Command & Control' center. High density, data-heavy, dark mode.",
+    "7. IMAGES: Use the provided image URLs. Do not use placeholders.",
+    "8. TESTING: Add data-testid to ALL interactive elements (buttons, inputs, links)."
+  ],
+  "universal_guidelines": [
+    "Avoid generic 'AI slop' designs.",
+    "Do not use gradients for text unless it's a very specific hero title.",
+    "Use 2-3x more spacing than usual.",
+    "Every interaction needs a micro-animation.",
+    "Use 'sonner' for toasts."
+  ]
+}
