@@ -998,6 +998,18 @@ async def get_vulnerabilities():
                 "example_payload": '{"payload": {"role": "admin"}, "algorithm": "none"}',
                 "impact": "Create forged tokens for privilege escalation",
                 "cwe": "CWE-345"
+            },
+            {
+                "id": "jwt-verify",
+                "name": "JWT Weak Verification",
+                "category": "JWT Vulnerabilities",
+                "severity": "Medium",
+                "endpoint": "/api/jwt/verify",
+                "method": "GET",
+                "description": "JWT verification endpoint exposes whether signature is valid, aids in secret cracking",
+                "example_payload": "Iterate through common secrets with hashcat",
+                "impact": "Secret key discovery, token forgery",
+                "cwe": "CWE-347"
             }
         ],
         "total_count": 24,
@@ -1010,7 +1022,7 @@ async def get_vulnerabilities():
             "Business Logic": 2,
             "Security Misconfiguration": 1,
             "Insecure Deserialization": 3,
-            "JWT Vulnerabilities": 4
+            "JWT Vulnerabilities": 5
         }
     }
 
