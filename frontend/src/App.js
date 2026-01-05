@@ -1562,6 +1562,7 @@ function App() {
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/orders" element={<OrdersPage />} />
+                <Route path="/vulnerabilities" element={<VulnerabilitiesPage />} />
               </Routes>
             </main>
             <Footer />
