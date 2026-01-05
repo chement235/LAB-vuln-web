@@ -238,6 +238,7 @@ const Navbar = () => {
               />
             </form>
             <Link to="/products" className="block text-gray-300 hover:text-cyan-400 font-mono">PRODUCTS</Link>
+            <Link to="/vulnerabilities" className="block text-gray-300 hover:text-red-400 font-mono">VULNERABILITIES</Link>
             <Link to="/cart" className="block text-gray-300 hover:text-cyan-400 font-mono">CART ({cart.length})</Link>
             {user ? (
               <>
