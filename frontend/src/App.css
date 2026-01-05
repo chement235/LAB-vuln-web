@@ -1,34 +1,354 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* VulnShop - Cyber Security Lab Styles */
+
+/* Font declarations */
+.font-rajdhani {
+    font-family: 'Rajdhani', sans-serif;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
+.font-mono {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Line clamp utilities */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Aspect ratio */
+.aspect-square {
+    aspect-ratio: 1 / 1;
+}
+
+/* Custom scrollbar for specific containers */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 240, 255, 0.3);
+    border-radius: 0;
+}
+
+/* Hover effects */
+.hover-glow:hover {
+    box-shadow: 0 0 30px rgba(0, 240, 255, 0.2);
+}
+
+/* Text effects */
+.text-gradient {
+    background: linear-gradient(135deg, #00F0FF 0%, #7000FF 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Glassmorphism */
+.glass {
+    background: rgba(10, 10, 12, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+/* Border animations */
+@keyframes border-pulse {
+    0%, 100% {
+        border-color: rgba(0, 240, 255, 0.3);
+    }
+    50% {
+        border-color: rgba(0, 240, 255, 0.6);
     }
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+.animate-border-pulse {
+    animation: border-pulse 2s ease-in-out infinite;
 }
 
-.App-link {
-    color: #61dafb;
+/* Glitch effect */
+@keyframes glitch {
+    0% {
+        transform: translate(0);
+    }
+    20% {
+        transform: translate(-2px, 2px);
+    }
+    40% {
+        transform: translate(-2px, -2px);
+    }
+    60% {
+        transform: translate(2px, 2px);
+    }
+    80% {
+        transform: translate(2px, -2px);
+    }
+    100% {
+        transform: translate(0);
+    }
 }
 
-@keyframes App-logo-spin {
+.glitch:hover {
+    animation: glitch 0.3s ease-in-out;
+}
+
+/* Typewriter effect */
+@keyframes typewriter {
     from {
-        transform: rotate(0deg);
+        width: 0;
     }
     to {
-        transform: rotate(360deg);
+        width: 100%;
     }
+}
+
+.typewriter {
+    overflow: hidden;
+    white-space: nowrap;
+    animation: typewriter 2s steps(40) forwards;
+}
+
+/* Blink cursor */
+@keyframes blink {
+    50% {
+        border-color: transparent;
+    }
+}
+
+.cursor-blink {
+    border-right: 2px solid #00F0FF;
+    animation: blink 0.7s step-end infinite;
+}
+
+/* Loading skeleton */
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.05) 25%,
+        rgba(255, 255, 255, 0.1) 50%,
+        rgba(255, 255, 255, 0.05) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+/* Focus states */
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: #00F0FF !important;
+    box-shadow: 0 0 0 1px rgba(0, 240, 255, 0.3);
+}
+
+/* Remove number input arrows */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* Product image hover effect */
+.product-image-hover {
+    transition: transform 0.5s ease, filter 0.3s ease;
+}
+
+.product-image-hover:hover {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+}
+
+/* Card hover lift effect */
+.card-hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 40px rgba(0, 240, 255, 0.1);
+}
+
+/* Button press effect */
+.btn-press:active {
+    transform: scale(0.98);
+}
+
+/* Responsive container */
+.container-cyber {
+    width: 100%;
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+    .container-cyber {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .container-cyber {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+}
+
+/* Data grid for bento layout */
+.bento-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 640px) {
+    .bento-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .bento-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .bento-grid .bento-large {
+        grid-column: span 2;
+        grid-row: span 2;
+    }
+    
+    .bento-grid .bento-wide {
+        grid-column: span 2;
+    }
+    
+    .bento-grid .bento-tall {
+        grid-row: span 2;
+    }
+}
+
+/* Terminal style text */
+.terminal-text::before {
+    content: '>';
+    margin-right: 0.5rem;
+    color: #00F0FF;
+}
+
+/* Warning banner */
+.warning-banner {
+    background: linear-gradient(90deg, transparent, rgba(255, 42, 109, 0.1), transparent);
+    border-left: 3px solid #FF2A6D;
+}
+
+/* Success banner */
+.success-banner {
+    background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.1), transparent);
+    border-left: 3px solid #00F0FF;
+}
+
+/* Tooltip */
+.tooltip {
+    position: relative;
+}
+
+.tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.5rem 1rem;
+    background: #0A0A0C;
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    color: #EDEDED;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+}
+
+.tooltip:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Hide scrollbar but keep functionality */
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* Tag/Badge variants */
+.tag-warning {
+    background: rgba(255, 193, 7, 0.1);
+    border-color: rgba(255, 193, 7, 0.3);
+    color: #FFC107;
+}
+
+.tag-success {
+    background: rgba(0, 255, 136, 0.1);
+    border-color: rgba(0, 255, 136, 0.3);
+    color: #00FF88;
+}
+
+.tag-danger {
+    background: rgba(255, 42, 109, 0.1);
+    border-color: rgba(255, 42, 109, 0.3);
+    color: #FF2A6D;
+}
+
+/* Status indicators */
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
+.status-dot.online {
+    background: #00FF88;
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+}
+
+.status-dot.offline {
+    background: #FF2A6D;
+    box-shadow: 0 0 10px rgba(255, 42, 109, 0.5);
+}
+
+.status-dot.pending {
+    background: #FFC107;
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
 }
