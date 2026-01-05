@@ -155,6 +155,13 @@ class JWTCreateRequest(BaseModel):
 
 # ============== AUTH HELPERS ==============
 
+# VULNERABLE: Weak and predictable secret
+JWT_SECRET = "vulnerable_secret_key_123"
+JWT_ALGORITHM = "HS256"
+
+# VULNERABLE: Additional weak secrets for brute force
+WEAK_SECRETS = ["secret", "password", "123456", "admin", "key", JWT_SECRET]
+
 def create_token(user_id: str, username: str, role: str = "user"):
     payload = {
         "user_id": user_id,
@@ -169,6 +176,29 @@ def decode_token(token: str):
         return jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
     except:
         return None
+
+def decode_token_vulnerable(token: str, algorithms: List[str] = None):
+    """VULNERABLE: Accepts algorithm from token header"""
+    try:
+        if algorithms is None:
+            # VULNERABLE: Accept any algorithm including 'none'
+            header = jwt.get_unverified_header(token)
+            alg = header.get('alg', 'HS256')
+            if alg.lower() == 'none':
+                # VULNERABLE: Accept unsigned tokens
+                parts = token.split('.')
+                if len(parts) >= 2:
+                    payload_b64 = parts[1]
+                    # Add padding if needed
+                    padding = 4 - len(payload_b64) % 4
+                    if padding != 4:
+                        payload_b64 += '=' * padding
+                    payload = json.loads(base64.urlsafe_b64decode(payload_b64))
+                    return payload
+            algorithms = [alg]
+        return jwt.decode(token, JWT_SECRET, algorithms=algorithms)
+    except Exception as e:
+        return {"error": str(e)}
 
 async def get_current_user(request: Request):
     auth_header = request.headers.get("Authorization", "")
