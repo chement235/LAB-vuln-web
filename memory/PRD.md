@@ -20,8 +20,8 @@ Membuat website e-commerce vulnerable untuk laboratorium cyber security dengan k
 | SQL Injection | ✅ Implemented |
 | NoSQL Injection | ✅ Implemented |
 | Command Injection | ✅ Implemented |
-| SSRF | ✅ Implemented (Dec 2025) |
-| XXE | ✅ Implemented (Dec 2025) |
+| SSRF | ✅ Implemented |
+| XXE | ✅ Implemented |
 | IDOR | ✅ Implemented |
 | Privilege Escalation | ✅ Implemented |
 | Stored XSS | ✅ Implemented |
@@ -29,7 +29,9 @@ Membuat website e-commerce vulnerable untuk laboratorium cyber security dengan k
 | Negative Price/Quantity | ✅ Implemented |
 | Coupon Reuse | ✅ Implemented |
 | Hidden Admin Dashboard | ✅ Implemented |
-| Documentation Page | ✅ Implemented (Dec 2025) |
+| Documentation Page | ✅ Implemented |
+| Insecure Deserialization | ✅ Implemented (Dec 2025) |
+| JWT Attacks | ✅ Implemented (Dec 2025) |
 
 ## What's Been Implemented
 
@@ -39,22 +41,24 @@ Membuat website e-commerce vulnerable untuk laboratorium cyber security dengan k
 - Cyber-themed UI
 
 ### Phase 2 (December 2025)
-**New Vulnerabilities:**
-1. **SSRF - Webhook Test** (`/api/webhook/test`) - POST request to fetch any URL
-2. **SSRF - Image Fetch** (`/api/fetch-image?url=`) - GET request for image URLs
-3. **XXE - Product Import** (`/api/import/products`) - XML parsing with external entities
-4. **XXE - Config Import** (`/api/config/import`) - Raw XML body parsing
+- SSRF endpoints (2)
+- XXE endpoints (2)
+- Documentation page with cheat sheets
 
-**Documentation System:**
-- `/vulnerabilities` - Full documentation page
-- `/api/vulnerabilities` - API endpoint with all vuln details
-- 16 total vulnerabilities documented
-- Cheat sheets for SQLi, NoSQLi, SSRF, XXE, XSS, Business Logic
-- Category filtering (7 categories)
-- Expandable exploitation details
-- CWE references with external links
+### Phase 3 (December 2025)
+**Insecure Deserialization (3 vulnerabilities):**
+1. `POST /api/deserialize` - Pickle/YAML deserialization
+2. `GET /api/session/load?data=` - Session pickle via GET
+3. `POST /api/cache/restore` - YAML deserialization
 
-### Total Vulnerabilities: 16
+**JWT Vulnerabilities (5 vulnerabilities):**
+1. `POST /api/jwt/forge-admin` - None algorithm bypass (FLAG included)
+2. `GET /api/jwt/verify` - Weak secret verification
+3. `POST /api/jwt/decode` - Algorithm confusion
+4. `POST /api/jwt/create` - Arbitrary token creation
+5. `GET /api/jwt/secret-hint` - CTF hints for cracking
+
+### Total Vulnerabilities: 24
 | Category | Count |
 |----------|-------|
 | Injection | 4 |
@@ -64,29 +68,35 @@ Membuat website e-commerce vulnerable untuk laboratorium cyber security dengan k
 | Cross-Site Scripting | 2 |
 | Business Logic | 2 |
 | Security Misconfiguration | 1 |
+| Insecure Deserialization | 3 |
+| JWT Vulnerabilities | 5 |
+
+### CTF Flags
+- Hidden Admin: `FLAG{y0u_f0und_th3_4dm1n_p4n3l}`
+- JWT Bypass: `FLAG{jwt_n0n3_4lg0r1thm_byp4ss}`
 
 ## Prioritized Backlog
 
 ### P0 - Done
-- All core vulnerabilities (16)
-- Basic e-commerce flow
+- All 24 vulnerabilities
+- E-commerce flow
 - Cyber-themed UI
-- Documentation page
-- SSRF & XXE vulnerabilities
+- Full documentation with cheat sheets
+- CTF flags
 
 ### P1 - Future Enhancements
-- Vulnerability difficulty levels (Easy/Medium/Hard)
+- Difficulty levels (Easy/Medium/Hard)
 - Progress tracking/leaderboard
-- Hints system toggle
+- User score system
 
 ### P2 - Nice to Have
 - Docker containerization
-- Reset functionality
-- Score calculation
+- Environment reset functionality
 - Certificate generation
+- More advanced vulnerabilities (Type Juggling, Race Conditions)
 
 ## Next Tasks
 1. Add difficulty toggle for each vulnerability
-2. Create progress tracking system
+2. Create progress tracking system with user scores
 3. Implement leaderboard for CTF-style challenges
-4. Add more advanced vulnerabilities (Deserialization, JWT attacks)
+4. Add Type Juggling and Race Condition vulnerabilities
